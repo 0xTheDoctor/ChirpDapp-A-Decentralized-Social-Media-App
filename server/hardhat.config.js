@@ -8,8 +8,8 @@ module.exports = {
   networks: {
     sepolia: {
       chainId: 11155111,
-      url: ALCHEMY_URL,
-      accounts: [myprivatekey],
+      url: process.env.ALCHEMY_URL,
+      accounts: [process.env.myprivatekey],
     },
   },
 };

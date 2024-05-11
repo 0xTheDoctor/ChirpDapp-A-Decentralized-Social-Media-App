@@ -1,77 +1,85 @@
-// SPDX-License-Identifier: GPL-3.0
+const {expect} = require("chai");
+const {ethers} = require("hardhat");
 
-pragma solidity 0.8.4;
-/**
- * @title Twitter Contract
- * @dev Store & retrieve value in a variable
- */
-contract TwitterContract {
+describe("Twitter Contract", function() {
+  let Twitter;
+  let twitter;
+  let owner;
 
-    event AddTweet(address recipient, uint tweetId);
-    event DeleteTweet(uint tweetId, bool isDeleted);
+  const NUM_TOTAL_NOT_MY_TWEETS = 5;
+  const NUM_TOTAL_MY_TWEETS = 3;
 
-    struct Tweet {
-        uint id;
-        address username;
-        string tweetText;
-        bool isDeleted;
+  let totalTweets;
+  let totalMyTweets;
+
+  beforeEach(async function() {
+    Twitter = await ethers.getContractFactory("TwitterContract");
+    [owner, addr1, addr2] = await ethers.getSigners();
+    twitter = await Twitter.deploy();
+
+    totalTweets = [];
+    totalMyTweets = [];
+
+    for(let i=0; i<NUM_TOTAL_NOT_MY_TWEETS; i++) {
+      let tweet = {
+        'tweetText': 'Ramdon text with id:- ' + i,
+        'username': addr1,
+        'isDeleted': false
+      };
+
+      await twitter.connect(addr1).addTweet(tweet.tweetText, tweet.isDeleted);
+      totalTweets.push(tweet);
     }
 
-    Tweet[] private tweets;
+    for(let i=0; i<NUM_TOTAL_MY_TWEETS; i++) {
+      let tweet = {
+        'username': owner,
+        'tweetText': 'Ramdon text with id:- ' + (NUM_TOTAL_NOT_MY_TWEETS+i),
+        'isDeleted': false
+      };
 
-
-    mapping(uint256 => address) tweetToOwner;
-
-
-    function addTweet(string memory tweetText, bool isDeleted) external {
-        uint tweetId = tweets.length;
-        tweets.push(Tweet(tweetId, msg.sender, tweetText, isDeleted));
-        tweetToOwner[tweetId] = msg.sender;
-        emit AddTweet(msg.sender, tweetId);
+      await twitter.addTweet(tweet.tweetText, tweet.isDeleted);
+      totalTweets.push(tweet);
+      totalMyTweets.push(tweet);
     }
+  });
 
+  describe("Add Tweet", function() {
+    it("should emit AddTweet event", async function() {
+      let tweet = {
+        'tweetText': 'New Tweet',
+        'isDeleted': false
+      };
 
-    function getAllTweets() external view returns (Tweet[] memory) {
-        Tweet[] memory temporary = new Tweet[](tweets.length);
-        uint counter = 0;
-        for(uint i=0; i<tweets.length; i++) {
-            if(tweets[i].isDeleted == false) {
-                temporary[counter] = tweets[i];
-                counter++;
-            }
-        }
+      await expect(await twitter.addTweet(tweet.tweetText, tweet.isDeleted)
+    ).to.emit(twitter, 'AddTweet').withArgs(owner.address, NUM_TOTAL_NOT_MY_TWEETS + NUM_TOTAL_MY_TWEETS);
+    })
+  });
 
-        Tweet[] memory result = new Tweet[](counter);
-        for(uint i=0; i<counter; i++) {
-            result[i] = temporary[i];
-        }
-        return result;
-    }
+  describe("Get All Tweets", function() {
+    it("should return the correct number of total tweets", async function() {
+      const tweetsFromChain = await twitter.getAllTweets();
+      expect(tweetsFromChain.length).to.equal(NUM_TOTAL_NOT_MY_TWEETS+NUM_TOTAL_MY_TWEETS);
+    })
 
- 
-    function getMyTweets() external view returns (Tweet[] memory) {
-        Tweet[] memory temporary = new Tweet[](tweets.length);
-        uint counter = 0;
-        for(uint i=0; i<tweets.length; i++) {
-            if(tweetToOwner[i] == msg.sender && tweets[i].isDeleted == false) {
-                temporary[counter] = tweets[i];
-                counter++;
-            }
-        }
+    it("should return the correct number of all my tweets", async function() {
+      const myTweetsFromChain = await twitter.getMyTweets();
+      expect(myTweetsFromChain.length).to.equal(NUM_TOTAL_MY_TWEETS);
+    })
+  })
 
-        Tweet[] memory result = new Tweet[](counter);
-        for(uint i=0; i<counter; i++) {
-            result[i] = temporary[i];
-        }
-        return result;
-    }
+  describe("Delete Tweet", function() {
+    it("should emit delete tweet event", async function() {
+      const TWEET_ID = 0;
+      const TWEET_DELETED = true;
 
-
-    function deleteTweet(uint tweetId, bool isDeleted) external {
-        if(tweetToOwner[tweetId] == msg.sender) {
-            tweets[tweetId].isDeleted = isDeleted;
-            emit DeleteTweet(tweetId, isDeleted);
-        }
-    }
-
-}
+      await expect(
+        twitter.connect(addr1).deleteTweet(TWEET_ID, TWEET_DELETED)
+      ).to.emit(
+        twitter, 'DeleteTweet'
+      ).withArgs(
+        TWEET_ID, TWEET_DELETED
+      );
+    })
+  })
+});
