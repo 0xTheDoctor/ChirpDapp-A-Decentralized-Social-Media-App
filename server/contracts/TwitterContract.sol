@@ -19,10 +19,10 @@ contract TwitterContract {
 
     Tweet[] private tweets;
 
-   
+    // Mapping of Tweet id to the wallet address of the user
     mapping(uint256 => address) tweetToOwner;
 
- 
+    // Method to be called by our frontend when trying to add a new Tweet
     function addTweet(string memory tweetText, bool isDeleted) external {
         uint tweetId = tweets.length;
         tweets.push(Tweet(tweetId, msg.sender, tweetText, isDeleted));
@@ -30,7 +30,7 @@ contract TwitterContract {
         emit AddTweet(msg.sender, tweetId);
     }
 
-
+    // Method to get all the Tweets
     function getAllTweets() external view returns (Tweet[] memory) {
         Tweet[] memory temporary = new Tweet[](tweets.length);
         uint counter = 0;
@@ -48,7 +48,7 @@ contract TwitterContract {
         return result;
     }
 
-
+    // Method to get only your Tweets
     function getMyTweets() external view returns (Tweet[] memory) {
         Tweet[] memory temporary = new Tweet[](tweets.length);
         uint counter = 0;
@@ -66,7 +66,7 @@ contract TwitterContract {
         return result;
     }
 
-
+    // Method to Delete a Tweet
     function deleteTweet(uint tweetId, bool isDeleted) external {
         if(tweetToOwner[tweetId] == msg.sender) {
             tweets[tweetId].isDeleted = isDeleted;

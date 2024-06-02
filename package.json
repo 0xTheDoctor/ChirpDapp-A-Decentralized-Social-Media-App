@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "@material-ui/core": "^4.12.4",
+    "avataaars": "^2.0.0",
+    "axios": "^1.7.2",
+    "ethers": "^6.12.1"
+  }
+}
