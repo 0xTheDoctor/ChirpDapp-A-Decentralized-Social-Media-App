@@ -1,5 +1,6 @@
-ChirpDapp: A Decentralized Social Media App
-ChirpDapp: A decentralized social platform for short messages, leveraging blockchain for censorship resistance and user privacy.
+#ChirpDapp: A Decentralized Social Media App
+
+A decentralized social platform for short messages, leveraging blockchain for censorship resistance and user privacy.
 
 ChirpDapp is a decentralized social media platform built on blockchain technology, offering users the ability to share short messages, or "chirps," in a secure and censorship-resistant environment. Inspired by the simplicity and immediacy of Twitter, ChirpDapp aims to provide a platform where users can freely express themselves without the risk of centralized control or data manipulation.
 
